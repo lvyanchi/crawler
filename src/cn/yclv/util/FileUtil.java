@@ -166,7 +166,7 @@ public class FileUtil {
 			br = new BufferedReader(reader);
 			String lineText = null;
 			while((lineText = br.readLine()) != null){
-				sb.append(lineText);
+				sb.append(lineText + "\r");
 			}
 			br.close();
 			fis.close();
@@ -175,6 +175,37 @@ public class FileUtil {
 		} 
 		return sb.toString();
 	}
+	
+	
+	/**
+	 * 读取txt文档，保存成string
+	 * @return
+	 */
+	public static String readTxtReplace(String path, String lineNeedToBeReplaced) {
+		File file = new File(path);
+		BufferedReader br;
+		StringBuffer sb = new StringBuffer();
+		try {
+			FileInputStream fis = new FileInputStream(file);
+			InputStreamReader reader = new InputStreamReader(fis);
+			br = new BufferedReader(reader);
+			String lineText = null;
+			while((lineText = br.readLine()) != null){
+				if(lineText.contains(lineNeedToBeReplaced) /*|| lineText.contains("<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />"*/){
+					String replace = lineText.replace(lineNeedToBeReplaced, "../images");
+					sb.append(replace + "\r");
+				}else{
+					sb.append(lineText + "\r");
+				}
+			}
+			br.close();
+			fis.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} 
+		return sb.toString();
+	}
+	
 	
 	
 	/**

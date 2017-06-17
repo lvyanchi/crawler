@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 
 import org.jsoup.Jsoup;
@@ -17,21 +18,177 @@ import org.jsoup.select.Elements;
 import cn.yclv.util.FileUtil;
 
 public class FileTest {
-	static String filePath = "E:\\java\\lb\\dusso\\bak";
+//	static String filePath = "E:\\java\\lb\\dusso\\bak";
+	static String lbycFilePath = "D:\\java\\mas3\\store\\src\\main\\webapp";
+	static String lbycImgFilePath = "D:\\java\\mas3\\store\\src\\main\\webapp\\jsp";
 	static String imageDomain = "http://10022671.s21i-10.faiusr.com";
 	static String cssDomain = "http://2.ss.faisys.com";
 	static String jsDomain = "http://1.ss.faisys.com";
 	static String jspContextPath =  "<%=request.getContextPath() %>";
+	static String jspContext = "<%@ page contentType=\"text/html;charset=UTF-8\" language=\"java\" pageEncoding=\"UTF-8\" %>";
 
 	public static void main(String[] args) {
-		for (int i = 0; i < 2; i++) {
-			renameManyFile(filePath);
-		}
-		renameJspFile(filePath);
-		 rewriteManyFile(filePath);
+//		for (int i = 0; i < 2; i++) {
+//			renameManyFile(filePath);
+//		}
+//		renameJspFile(filePath);
+//		rewriteManyFile(filePath);
 //		replaceJspContextPath(filePath);
+//		rewriteLbycWebsiteFile(lbycFilePath);
+//		addJspContext(lbycFilePath);
+//		renameHtmlToJsp(lbycFilePath);
+//		rewriteLeftNavFile(lbycFilePath);
+//		removeMetaContent(lbycFilePath);
+		rewriteLybcImgPath(lbycImgFilePath);
+		
 	}
 	
+	private static void rewriteLybcImgPath(String filePath) {
+		File[] files = getFilesByPath(filePath);
+		if(files != null){
+			for (File file : files) {
+				if(!file.isDirectory()){
+					String fileName = file.getName();
+					if(fileName.endsWith(".jsp") && !fileName.equals("about.jsp") && !fileName.equals("accumulator.jsp")){
+						String content = FileUtil.readTxtReplace(file.getAbsolutePath(), "images");
+						FileUtil.writeTxt(content, file.getAbsolutePath());
+					}
+				}
+			}
+		}
+	}
+
+	private static String parseImgHtml(File file) {
+		Document doc = getDocByFile(file);
+		Elements imgEles = doc.getElementsByTag("img");
+		for (Element imgEle : imgEles) {
+			if(imgEle.hasAttr("src")){
+				String imgSrc = imgEle.attr("src");
+				if(imgSrc.startsWith("image")){
+					imgEle.attr("src", "../" + imgSrc);
+				}
+			}
+		}
+		return doc.html();
+	}
+
+	private static void removeMetaContent(String filePath) {
+		File[] files = getFilesByPath(filePath);
+		if(files != null){
+			for (File file : files) {
+				if(!file.isDirectory()){
+					String fileName = file.getName();
+					if(fileName.endsWith(".jsp")){
+						String content = FileUtil.readTxtReplace(file.getAbsolutePath(), "<meta charset=\"UTF-8\">");
+						FileUtil.writeTxt(content, file.getAbsolutePath());
+						System.out.println(fileName + "更新了");
+					}
+				}
+			}
+		}
+	}
+
+	private static void rewriteLeftNavFile(String filePath) {
+		File[] files = getFilesByPath(filePath);
+		if(files != null){
+			for (File file : files) {
+				if(!file.isDirectory()){
+					String fileName = file.getName();
+					if(fileName.endsWith(".jsp")){
+						String htmlContent = removeLeftNavClass(file);
+						FileUtil.writeTxt(htmlContent, file.getAbsolutePath());
+						System.out.println(fileName + "更新了");
+					}
+				}
+			}
+		}
+	}
+
+	private static String removeLeftNavClass(File file) {
+		Document doc = getDocByFile(file);
+		Elements navEles = doc.getElementsByClass("article-left");
+		for (Element navEle : navEles) {
+			navEle.after("<jsp:include page=\"leftNav.jsp\"></jsp:include>");
+			navEle.remove();
+		}
+		return doc.html();
+	}
+
+	private static void renameHtmlToJsp(String filePath) {
+		File[] files = getFilesByPath(filePath);
+		if(files != null){
+			for (File f : files) {
+				String name = f.getName();
+				if(name.endsWith(".html")){
+					name = name.replace(".html", ".jsp");
+					FileUtil.moveFile(f.getAbsolutePath(), filePath + "\\" + name, true);
+				}
+			}
+		}
+	}
+
+	private static void addJspContext(String filePath) {
+		File[] files = getFilesByPath(filePath);
+		if(files != null){
+			for (File file : files) {
+				if(!file.isDirectory()){
+					String fileName = file.getName();
+					if(fileName.endsWith(".jsp") && !fileName.contains("index")){
+						String htmlContent = addOneLineJsp(file);
+						FileUtil.writeTxt(htmlContent, file.getAbsolutePath());
+						System.out.println(fileName + "更新了");
+					}
+				}
+			}
+		}
+	}
+
+	private static String addOneLineJsp(File file) {
+		StringBuilder sb = new StringBuilder();
+		try {
+			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+			String lineText = null;
+			sb.append(jspContext + "\r");
+			while((lineText = br.readLine()) != null){
+				if(lineText.contains(jspContext)){
+					sb.append("");
+				}else{
+					sb.append(lineText + "\r");
+				}
+			}
+			br.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return sb.toString();
+	}
+
+	private static void rewriteLbycWebsiteFile(String filePath) {
+		File[] files = getFilesByPath(filePath);
+		if(files != null){
+			for (File file : files) {
+				if(!file.isDirectory()){
+					String fileName = file.getName();
+					if(fileName.endsWith(".jsp") && !fileName.equals("index.html")){
+						String htmlContent = removeClass(file, "foot");
+//						FileUtil.writeTxt(htmlContent, file.getAbsolutePath());
+						System.out.println(fileName + "更新了");
+					}
+				}
+			}
+		}
+	}
+
+	private static String removeClass(File file, String className) {
+		Document doc = getDocByFile(file);
+		Elements navEles = doc.getElementsByClass(className);
+		for (Element navEle : navEles) {
+			navEle.after("<jsp:include page=\"foot.jsp\"></jsp:include>");
+			navEle.remove();
+		}
+		return doc.toString();
+	}
+
 	public static File[] getFilesByPath(String filePath) {
 		File[] files = null;
 		File file = new File(filePath);
@@ -85,9 +242,7 @@ public class FileTest {
 	
 	
 	public static String parseHtml(File file) {
-		String fileContent = FileUtil.readTxt(file.getAbsolutePath());
-		Entities.EscapeMode.base.getMap().clear();
-		Document doc = Jsoup.parse(fileContent);
+		Document doc = getDocByFile(file);
 		Elements itemCenterEles = doc.getElementsByClass("itemCenter");
 		Elements itemEles = doc.getElementsByClass("item");
 		Element webNavEle = doc.getElementById("webNav");
@@ -178,6 +333,14 @@ public class FileTest {
 			tableEle.attr("_jump", "window.open('" + onclickVal + "', '_self')");
 		}
 		return doc.body().html();
+	}
+
+	public static Document getDocByFile(File file) {
+		String fileContent = FileUtil.readTxt(file.getAbsolutePath());
+		Entities.EscapeMode.base.getMap().clear();
+		Document doc = Jsoup.parse(fileContent);
+//		Document doc = Jsoup.parseBodyFragment(fileContent);
+		return doc;
 	}
 
 	
