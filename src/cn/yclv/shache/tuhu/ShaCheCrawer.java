@@ -1,4 +1,4 @@
-package cn.yclv.tuhu;
+package cn.yclv.shache.tuhu;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,22 +18,11 @@ import cn.yclv.util.HttpUtil;
 public class ShaCheCrawer {
 	
 	public static void main(String[] args) {
-//		String shacheUrl = "https://item.tuhu.com/Search.html?s=%E5%88%B9%E8%BD%A6%E7%89%87&pageNumber=";
-//		for (int i = 1; i <= 56; i++) {
-//			String shacheHtmlPage = HttpUtil.buildGet(shacheUrl + i);
-//			Document doc = Jsoup.parse(shacheHtmlPage);
-//			Elements trEles = doc.getElementsByTag("tr");
-//			for (Element trEle : trEles) {
-//				Elements trA = trEle.getElementsByClass("DisplayName");
-//				Elements trPrice = trEle.getElementsByClass("price");
-//				String priceText = trPrice.get(0).children().get(0).text();
-//				String proName = trA.get(0).text();
-////				FileUtil.writeTxt(content, path)
-//				System.out.println("品名：" + proName + ";价格：" + priceText);
-//			}
-//		}
+		crawlerShachepian();
 		
-//		String readTxt = FileUtil.readTxt("C:\\Users\\Administrator\\Desktop\\shache.txt");
+	}
+
+	private static void resetTxt() {
 		File file = new File("C:\\Users\\Administrator\\Desktop\\shache.txt");
 		BufferedReader br;
 		StringBuffer sb = new StringBuffer();
@@ -56,5 +45,21 @@ public class ShaCheCrawer {
 		System.out.println(sb.toString());
 		
 		FileUtil.writeTxt(sb.toString(), "C:\\Users\\Administrator\\Desktop\\shacheBak.txt");
+	}
+
+	public static void crawlerShachepian() {
+		String shacheUrl = "https://item.tuhu.com/Search.html?s=%E5%88%B9%E8%BD%A6%E7%89%87&pageNumber=";
+		for (int i = 1; i <= 56; i++) {
+			String shacheHtmlPage = HttpUtil.buildGet(shacheUrl + i);
+			Document doc = Jsoup.parse(shacheHtmlPage);
+			Elements trEles = doc.getElementsByTag("tr");
+			for (Element trEle : trEles) {
+				Elements trA = trEle.getElementsByClass("DisplayName");
+				Elements trPrice = trEle.getElementsByClass("price");
+				String priceText = trPrice.get(0).children().get(0).text();
+				String proName = trA.get(0).text();
+				System.out.println("品名：" + proName + ";价格：" + priceText);
+			}
+		}
 	}
 }
